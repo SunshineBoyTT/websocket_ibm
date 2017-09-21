@@ -1,0 +1,122 @@
+
+<!DOCTYPE html>
+<meta charset="utf-8" />
+<title>WebSocket Test</title>
+<script language="javascript" type="text/javascript">
+	var wsUri;
+	var websocket;
+	var consoleLog;
+
+	function init() {
+		var wsPort = (window.location.port.toString() === "" ? "" : ":"	+ window.location.port)
+		wsUri = "ws://" + window.location.hostname + wsPort	+ "/query";
+		//wsUri = "ws://192.168.0.62:8080/websocket_ibm/query";
+		consoleLog = document.getElementById("consoleLog");
+		showConnectButtons();
+		document.getElementById("message").setAttribute("disabled","disabled");
+	}
+
+	function doConnect() {
+		websocket = new WebSocket(wsUri);
+		websocket.onopen = function(evt) {
+			onOpen(evt)
+		};
+		websocket.onclose = function(evt) {
+			onClose(evt)
+		};
+		websocket.onmessage = function(evt) {
+			onMessage(evt)
+		};
+		websocket.onerror = function(evt) {
+			onError(evt)
+		};
+		showDisconnectButtons();
+		document.getElementById('message').removeAttribute('disabled');
+	}
+
+	function onOpen(evt) {
+		writeToScreen("CONNECTED");
+	}
+
+	function onClose(evt) {
+		writeToScreen("DISCONNECTED");
+	}
+
+	function onMessage(evt) {
+		writeToScreen('<span style="color: blue;">RESPONSE: ' + evt.data + '</span>');
+	}
+
+	function onError(evt) {
+		writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
+	}
+
+	function doSend() {
+		var message = document.getElementById('message').value;
+		writeToScreen("SENT: " + message);
+		websocket.send(message);
+	}
+
+	function doDisconnect() {
+		websocket.close();
+		showConnectButtons();
+		document.getElementById("message").setAttribute("disabled","disabled");
+	}
+	
+	function showConnectButtons(){
+        var connectButton = document.createElement("input");
+        connectButton.setAttribute("id", "connect");
+        connectButton.setAttribute("type", "button");
+        connectButton.setAttribute("value", "Connect");
+        connectButton.setAttribute("onclick", "doConnect()");
+
+        var buttonDiv = document.getElementById("buttons");
+		buttonDiv.innerHTML = "";
+        buttonDiv.appendChild(connectButton);
+	}
+
+	function showDisconnectButtons(){
+        var sendButton = document.createElement("input");
+        sendButton.setAttribute("id", "send");
+        sendButton.setAttribute("type", "button");
+        sendButton.setAttribute("value", "Send");
+        sendButton.setAttribute("onclick", "doSend()");
+
+		var disConButton = document.createElement("input");
+        disConButton.setAttribute("id", "disconnect");
+        disConButton.setAttribute("type", "button");
+        disConButton.setAttribute("value", "Disconnect");
+        disConButton.setAttribute("onclick", "doDisconnect()");
+
+        var buttonDiv = document.getElementById("buttons");
+		buttonDiv.innerHTML = "";
+        buttonDiv.appendChild(sendButton);
+        buttonDiv.appendChild(disConButton);
+	}
+
+	function writeToScreen(message) {
+		var pre = document.createElement("p");
+		pre.style.wordWrap = "break-word";
+		pre.innerHTML = message;
+		consoleLog.appendChild(pre);
+		while (consoleLog.childNodes.length > 30) {
+			consoleLog.removeChild(consoleLog.firstChild);
+		}
+		consoleLog.scrollTop = consoleLog.scrollHeight;
+	}
+	
+	window.addEventListener("load", init, false);
+</script>
+
+<h2>WebSocket Test</h2>
+
+<div id="request" style="float: left;">
+	<strong>Query:</strong><br>
+	<input class="draw-border" id="message" size="35" value="Who is god?"> <br>
+	<div id="buttons"></div>
+</div>
+
+<div id="response"
+	style="float: left; margin-left: 20px; padding-left: 20px; width: 350px; border-left: solid 1px #cccccc;">
+	<strong>Response:</strong>
+	<div id="consoleLog"></div>
+</div>
